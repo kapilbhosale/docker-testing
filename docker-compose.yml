@@ -1,0 +1,51 @@
+version: "3.9"
+services:
+  webserver:
+    build: ./nginx
+    ports:
+      - "80:80"
+    links:
+      - web:web
+  # end of ningx web server
+
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: password
+  # end of db
+
+  redis:
+    image: 'redis:4.0-alpine'
+    command: redis-server
+    # command: redis-server --requirepass 'Redis@password@SE'
+    volumes:
+      - './tmp/redis:/data'
+  # end of redis
+
+  web:
+    build: .
+    # command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/myapp
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+  # enf of web rails application
+
+  sidekiq:
+    depends_on:
+      - db
+      - redis
+    build: .
+    command: bash -c "bundle exec sidekiq"
+    volumes:
+      - '.:/myapp'
+    env_file:
+      - '.env'
+    # By default Docker Compose will look for an .env file in the same directory as your docker-compose.yml file.
+
+    # docker-compose --env-file ./config/.env.dev up 
