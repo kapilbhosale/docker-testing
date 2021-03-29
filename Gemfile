@@ -38,7 +38,7 @@ gem 'bootsnap', '>= 1.1.0', require: false
 
 gem 'redis'
 gem 'hiredis'
-
+gem 'hirb'
 gem 'capistrano'
 
 group :development, :test do
