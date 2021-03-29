@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  webserver:
+    build: ./nginx
+    ports:
+      - "8080:8080"
+    links:
+      - web:web
+  # end of ningx web server
+
+  db:
+    image: postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: p@ssw0rd
+  # end of db
+
+  redis:
+    image: 'redis:4.0-alpine'
+    command: redis-server
+    # command: redis-server --requirepass 'Redis@password@SE'
+    volumes:
+      - './tmp/redis:/data'
+  # end of redis
+
+  web:
+    build: .
+    command: bash -c "bundle exec rails s -p 3000 -b '0.0.0.0'"
+    ports:
+      - "3000-3010:3000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - prod.env
+    volumes:
+      - ./logs:/home/logs
+  # enf of web rails application
+
+  sidekiq:
+    build: .
+    depends_on:
+      - db
+      - redis
+    command: bash -c "bundle exec sidekiq"
+    env_file:
+      - '.env'

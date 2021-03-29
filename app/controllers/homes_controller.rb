@@ -1,6 +1,9 @@
 class HomesController < ApplicationController
   before_action :set_home, only: %i[ show edit update destroy ]
 
+  def info
+    @rails_env = Rails.env
+  end
   # GET /homes or /homes.json
   def index
     @homes = Home.all
